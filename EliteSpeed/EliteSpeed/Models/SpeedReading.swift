@@ -1,7 +1,7 @@
 import Foundation
 
 /// One GPS speed sample reduced to what the display needs.
-struct SpeedReading: Equatable {
+nonisolated struct SpeedReading: Equatable {
     /// Below this the car is parked and GPS is jittering; show 0 rather than 1 or 2.
     static let stationaryFloorKmh = 2.0
     /// Core Location's speedAccuracy (m/s) above which the readout dims.

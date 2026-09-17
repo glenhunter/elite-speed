@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Slides up from the bottom for a few seconds when the track changes.
+/// Slides down from the top for a few seconds when the track changes.
 struct NowPlayingToast: View {
     @Environment(MusicModel.self) private var music
 
@@ -8,7 +8,7 @@ struct NowPlayingToast: View {
         ZStack {
             if let track = music.toast {
                 content(for: track)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .transition(.move(edge: .top).combined(with: .opacity))
             }
         }
         .animation(.spring(duration: 0.4), value: music.toast)
@@ -40,7 +40,7 @@ struct NowPlayingToast: View {
         }
         .padding(12)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
-        .padding(.bottom, 16)
+        .padding(.top, 8)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Now playing")
         // No accessibility action: it is a transient announcement, not a control.

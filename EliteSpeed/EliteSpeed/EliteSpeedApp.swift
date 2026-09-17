@@ -15,6 +15,7 @@ struct EliteSpeedApp: App {
             RootView()
                 .environment(speed)
                 .environment(music)
+                .preferredColorScheme(.dark)
         }
     }
 }

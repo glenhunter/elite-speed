@@ -1,8 +1,53 @@
 import SwiftUI
 
-/// Slides up briefly when the track changes. Filled in at M6; renders nothing until then.
+/// Slides up from the bottom for a few seconds when the track changes.
 struct NowPlayingToast: View {
+    @Environment(MusicModel.self) private var music
+
     var body: some View {
-        EmptyView()
+        ZStack {
+            if let track = music.toast {
+                content(for: track)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+        .animation(.spring(duration: 0.4), value: music.toast)
     }
+
+    private func content(for track: TrackInfo) -> some View {
+        HStack(spacing: 12) {
+            if let artwork = track.artwork {
+                Image(uiImage: artwork)
+                    .resizable()
+                    .frame(width: 56, height: 56)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+            } else {
+                Image(systemName: "music.note")
+                    .font(.system(size: 28))
+                    .frame(width: 56, height: 56)
+                    .background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
+            }
+            VStack(alignment: .leading, spacing: 2) {
+                Text(track.title)
+                    .font(.speedo(.semiBold, size: 24))
+                if let artist = track.artist {
+                    Text(artist)
+                        .font(.speedo(size: 20))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .lineLimit(1)
+        }
+        .padding(12)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
+        .padding(.bottom, 16)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Now playing")
+        // No accessibility action: it is a transient announcement, not a control.
+    }
+}
+
+#Preview {
+    NowPlayingToast()
+        .environment(MusicModel())
 }

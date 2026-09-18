@@ -4,6 +4,8 @@ import SwiftUI
 struct SpeedView: View {
     /// Where the readout sits in its panel: bottom in portrait so it hugs the map, centre in landscape.
     var alignment: Alignment = .center
+    /// Space between the panel's sides and the roundel.
+    var roundelSideInset: CGFloat = 2 * Layout.gap
 
     @Environment(SpeedModel.self) private var speed
     @Environment(\.palette) private var palette
@@ -57,11 +59,13 @@ struct SpeedView: View {
 
     // MARK: Roundel (liveries)
 
-    /// A door-number circle filling the panel, digits and unit inside. Sized for two digits;
-    /// three-digit speeds scale down to fit.
+    /// A door-number circle inset from the panel's sides, digits and unit inside. Sized for two
+    /// digits; three-digit speeds scale down to fit. Bottom-aligned it sits flush with the top of
+    /// its panel and a gap above what follows; centred it keeps a gap above and below.
     private func roundelReadout(_ roundel: Palette.Roundel) -> some View {
         GeometryReader { geometry in
-            let diameter = min(geometry.size.width, geometry.size.height) - 2 * Layout.gap
+            let verticalRoom = geometry.size.height - (alignment == .bottom ? 1 : 2) * Layout.gap
+            let diameter = min(geometry.size.width - 2 * roundelSideInset, verticalRoom)
             let unitInk = Self.inkBounds(of: units.label, font: Self.roundelUnitFont)
             let digitSize = Self.roundelDigitSize(diameter: diameter, unitInkHeight: unitInk.height)
             ZStack {

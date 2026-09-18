@@ -59,19 +59,26 @@ struct RootView: View {
         GeometryReader { geometry in
             let height = geometry.size.height
             let rowWidth = geometry.size.width - 2 * sideInset
-            let shares = PortraitLayout.shares(showMap: showMap, showRow: showRow, showMedia: showMediaControls)
+            let speedShare = palette.roundel == nil
+                ? 0.25
+                : PortraitLayout.roundelPanelHeight(screenWidth: geometry.size.width, sideMargin: Layout.roundelSideMargin, gap: Layout.gap) / height
+            let shares = PortraitLayout.shares(showMap: showMap, showRow: showRow, showMedia: showMediaControls, speed: speedShare)
             VStack(spacing: 0) {
+                // The upper zone fills whatever the lower panels leave, so hidden panels
+                // read as empty livery colour rather than a gap.
                 VStack(spacing: 0) {
-                    SpeedView(alignment: .bottom)
-                        .frame(height: height * shares.speed - edge)
+                    SpeedView(alignment: .bottom, roundelSideInset: Layout.roundelSideMargin - edge)
+                        .frame(height: height * shares.speed - (palette.roundel == nil ? edge : 0))
                     if showMap {
                         MapPanel()
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                             .frame(height: height * shares.map)
                     }
+                    Spacer(minLength: 0)
                 }
-                .padding(.top, edge)
+                .padding(.top, palette.roundel == nil ? edge : 0)
                 .padding(.horizontal, edge)
+                .frame(maxHeight: .infinity)
                 .foregroundStyle(palette.upperForeground)
                 .background(palette.upperBackground)
 
@@ -98,7 +105,8 @@ struct RootView: View {
                                 Keyline(axis: .horizontal)
                             }
                             MusicControlsView()
-                                .padding(.vertical, Layout.gap)
+                                .padding(.top, 2 * Layout.gap)
+                                .padding(.bottom, Layout.gap)
                                 .frame(height: height * shares.media)
                         }
                     }
@@ -134,7 +142,8 @@ struct RootView: View {
                         }
                         if showMediaControls {
                             MusicControlsView()
-                                .padding(Layout.gap)
+                                .padding(.top, 2 * Layout.gap)
+                                .padding([.horizontal, .bottom], Layout.gap)
                         }
                     }
                     .padding(.vertical, edge)

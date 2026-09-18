@@ -1,6 +1,7 @@
 import Foundation
 
-/// Share of the portrait height each panel gets. Hidden panels give their share to the speed.
+/// Share of the portrait height each panel gets. The speed keeps its share whatever is hidden,
+/// so the readout never moves or resizes; hidden panels simply leave empty space.
 nonisolated enum PortraitLayout {
     struct Shares: Equatable {
         let speed: Double
@@ -9,14 +10,21 @@ nonisolated enum PortraitLayout {
         let media: Double
     }
 
-    static func shares(showMap: Bool, showRow: Bool, showMedia: Bool) -> Shares {
-        // Integer percentages so the sums stay exact.
-        var speed = 25
-        let map = showMap ? 50 : 0
-        let row = showRow ? 12 : 0
-        let media = showMedia ? 13 : 0
-        speed = 100 - map - row - media
-        return Shares(speed: Double(speed) / 100, map: Double(map) / 100,
-                      row: Double(row) / 100, media: Double(media) / 100)
+    /// Clock and compass row plus controls together, always reserved.
+    private static let lowerShare = 0.25
+
+    /// `speed` defaults to the design's quarter; a roundel asks for more and the map yields it.
+    static func shares(showMap: Bool, showRow: Bool, showMedia: Bool, speed: Double = 0.25) -> Shares {
+        Shares(speed: speed,
+               map: showMap ? 1 - speed - lowerShare : 0,
+               row: showRow ? 0.12 : 0,
+               media: showMedia ? 0.13 : 0)
+    }
+
+    /// Height the speed panel needs for a roundel inset `sideMargin` from each screen edge, with
+    /// a gap below. Nothing above: the safe area already clears the Dynamic Island by about a gap.
+    static func roundelPanelHeight(screenWidth: Double, sideMargin: Double, gap: Double) -> Double {
+        let diameter = screenWidth - 2 * sideMargin
+        return diameter + gap
     }
 }

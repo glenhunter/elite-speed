@@ -81,6 +81,11 @@ struct SettingsView: View {
                             ZStack {
                                 VStack(spacing: 0) {
                                     palette.upperBackground
+                                        .overlay {
+                                            if let stripes = palette.stripes {
+                                                StripesView(stripes: stripes, axis: .vertical)
+                                            }
+                                        }
                                     palette.lowerBackground
                                 }
                                 if let roundel = palette.roundel {

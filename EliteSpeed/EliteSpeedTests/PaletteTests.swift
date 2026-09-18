@@ -29,6 +29,14 @@ struct PaletteTests {
         }
     }
 
+    @Test func stripedLiveriesCarryStripesAndOthersDoNot() {
+        let striped: Set<Theme> = [.teamLotus, .motorsport, .rothmans, .martini]
+        for theme in Theme.allCases {
+            let p = Palette.resolve(theme: theme, digitColour: .white, night: false)
+            #expect((p.stripes != nil) == striped.contains(theme), "\(theme)")
+        }
+    }
+
     @Test func nightOverridesEveryTheme() {
         for theme in Theme.allCases {
             let p = Palette.resolve(theme: theme, digitColour: .white, night: true)
@@ -40,6 +48,6 @@ struct PaletteTests {
         let p = Palette.night
         #expect(p.upperBackground == .black && p.lowerBackground == .black)
         #expect(p.upperForeground == DigitColour.night && p.lowerForeground == DigitColour.night)
-        #expect(p.roundel == nil && p.mapIsLight == false)
+        #expect(p.roundel == nil && p.mapIsLight == false && p.stripes == nil)
     }
 }

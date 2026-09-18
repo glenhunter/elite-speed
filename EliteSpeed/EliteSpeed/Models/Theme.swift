@@ -10,6 +10,7 @@ nonisolated enum Theme: String, CaseIterable {
     case rossoCorsa
     case alpine
     case motorsport
+    case martini
 
     var label: String {
         switch self {
@@ -21,6 +22,7 @@ nonisolated enum Theme: String, CaseIterable {
         case .rossoCorsa: "Rosso Corsa"
         case .alpine: "Alpine"
         case .motorsport: "Motorsport"
+        case .martini: "Martini"
         }
     }
 
@@ -55,9 +57,15 @@ nonisolated enum Theme: String, CaseIterable {
                            roundel: roundel, mapIsLight: true)
         case .rothmans:
             let navy = Color(red: 0.06, green: 0.17, blue: 0.35)
+            let red = Color(red: 0.80, green: 0.10, blue: 0.16)
+            let gold = Color(red: 0.85, green: 0.65, blue: 0.20)
             return Palette(upperBackground: navy, lowerBackground: white,
                            upperForeground: white, lowerForeground: navy,
-                           roundel: roundel, mapIsLight: true)
+                           roundel: roundel, mapIsLight: true,
+                           stripes: Stripes(bands: [
+                               Stripes.Band(start: 0.80, width: 0.035, color: red),
+                               Stripes.Band(start: 0.835, width: 0.02, color: gold),
+                           ]))
         case .rossoCorsa:
             let red = Color(red: 0.83, green: 0.00, blue: 0.00)
             return Palette(upperBackground: red, lowerBackground: black,
@@ -70,9 +78,29 @@ nonisolated enum Theme: String, CaseIterable {
                            roundel: roundel, mapIsLight: true)
         case .motorsport:
             let blue = Color(red: 0.11, green: 0.25, blue: 0.58)
+            let lightBlue = Color(red: 0.00, green: 0.40, blue: 0.70)
+            let violet = Color(red: 0.24, green: 0.13, blue: 0.50)
+            let red = Color(red: 0.90, green: 0.13, blue: 0.18)
             return Palette(upperBackground: white, lowerBackground: white,
                            upperForeground: blue, lowerForeground: blue,
-                           roundel: Palette.Roundel(fill: white, ring: blue, digits: black), mapIsLight: true)
+                           roundel: Palette.Roundel(fill: white, ring: blue, digits: black), mapIsLight: true,
+                           stripes: Stripes(bands: [
+                               Stripes.Band(start: 0.70, width: 0.045, color: lightBlue),
+                               Stripes.Band(start: 0.745, width: 0.045, color: violet),
+                               Stripes.Band(start: 0.79, width: 0.045, color: red),
+                           ]))
+        case .martini:
+            let navy = Color(red: 0.05, green: 0.15, blue: 0.40)
+            let lightBlue = Color(red: 0.45, green: 0.75, blue: 0.90)
+            let red = Color(red: 0.85, green: 0.10, blue: 0.20)
+            return Palette(upperBackground: white, lowerBackground: white,
+                           upperForeground: navy, lowerForeground: navy,
+                           roundel: Palette.Roundel(fill: white, ring: navy, digits: black), mapIsLight: true,
+                           stripes: Stripes(bands: [
+                               Stripes.Band(start: 0.20, width: 0.03, color: lightBlue),
+                               Stripes.Band(start: 0.245, width: 0.09, color: navy),
+                               Stripes.Band(start: 0.35, width: 0.03, color: red),
+                           ]))
         }
     }
 }

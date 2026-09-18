@@ -1,20 +1,32 @@
+import CoreLocation
 import SwiftUI
 
-/// Picks the landscape or portrait arrangement of the panels.
+/// Picks the landscape or portrait arrangement of the panels and sets the dashboard colour.
 struct RootView: View {
     @Environment(\.verticalSizeClass) private var verticalSizeClass
     @Environment(\.scenePhase) private var scenePhase
     @Environment(MusicModel.self) private var music
+    @Environment(SpeedModel.self) private var speed
+    @AppStorage(Settings.digitColour) private var digitColour = DigitColour.white
+    @AppStorage(Settings.nightMode) private var nightMode = false
     @AppStorage(Settings.showMap) private var showMap = true
+    @AppStorage(Settings.showClock) private var showClock = true
+    @AppStorage(Settings.showCompass) private var showCompass = true
+    @AppStorage(Settings.showMediaControls) private var showMediaControls = true
     @State private var showSettings = false
 
+    private let sideInset: CGFloat = 16
+
     var body: some View {
-        Group {
-            if verticalSizeClass == .compact {
-                landscape
-            } else {
-                portrait
+        TimelineView(.everyMinute) { context in
+            Group {
+                if verticalSizeClass == .compact {
+                    landscape
+                } else {
+                    portrait
+                }
             }
+            .foregroundStyle(foreground(at: context.date))
         }
         .padding(8)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -27,15 +39,28 @@ struct RootView: View {
         }
     }
 
+    /// Night-safe red between civil dusk and dawn when enabled, otherwise the chosen preset.
+    private func foreground(at date: Date) -> Color {
+        if nightMode, let here = speed.coordinate,
+           Solar.isNight(at: date, latitude: here.latitude, longitude: here.longitude) {
+            return DigitColour.night
+        }
+        return digitColour.color
+    }
+
+    private var showRow: Bool { showClock || showCompass }
+
     /// [music / clock / compass column] · speed · map
     private var landscape: some View {
         HStack(spacing: 8) {
-            VStack(spacing: 8) {
-                MusicControlsView()
-                ClockView()
-                CompassView()
+            if showRow || showMediaControls {
+                VStack(spacing: 8) {
+                    if showMediaControls { MusicControlsView() }
+                    if showClock { ClockView() }
+                    if showCompass { CompassView() }
+                }
+                .frame(maxWidth: 220)
             }
-            .frame(maxWidth: 220)
             SpeedView()
             if showMap {
                 MapPanel()
@@ -49,32 +74,43 @@ struct RootView: View {
         GeometryReader { geometry in
             let height = geometry.size.height
             let rowWidth = geometry.size.width - 2 * sideInset
+            let shares = PortraitLayout.shares(showMap: showMap, showRow: showRow, showMedia: showMediaControls)
             VStack(spacing: 0) {
                 SpeedView()
-                    .frame(height: height * (showMap ? 0.25 : 0.75))
+                    .frame(height: height * shares.speed)
                 if showMap {
                     MapPanel()
                         .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .frame(height: height * 0.50)
+                        .frame(height: height * shares.map)
                 }
-                HStack(spacing: 0) {
-                    ClockView()
-                        .frame(width: rowWidth * 2 / 3)
-                    Keyline(axis: .vertical)
+                if showRow {
+                    HStack(spacing: 0) {
+                        if showClock {
+                            ClockView()
+                                .frame(width: showCompass ? rowWidth * 2 / 3 : rowWidth)
+                        }
+                        if showClock && showCompass {
+                            Keyline(axis: .vertical)
+                                .padding(.vertical, 12)
+                        }
+                        if showCompass {
+                            CompassView()
+                        }
+                    }
+                    .frame(height: height * shares.row)
+                }
+                if showMediaControls {
+                    if showRow {
+                        Keyline(axis: .horizontal)
+                    }
+                    MusicControlsView()
                         .padding(.vertical, 12)
-                    CompassView()
+                        .frame(height: height * shares.media)
                 }
-                .frame(height: height * 0.12)
-                Keyline(axis: .horizontal)
-                MusicControlsView()
-                    .padding(.vertical, 12)
-                    .frame(height: height * 0.13)
             }
             .padding(.horizontal, sideInset)
         }
     }
-
-    private let sideInset: CGFloat = 16
 
     private var settingsButton: some View {
         Button {

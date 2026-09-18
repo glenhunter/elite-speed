@@ -1,9 +1,11 @@
 import SwiftUI
 
 struct ClockView: View {
+    @AppStorage(Settings.clockFormat) private var format = ClockFormat.system
+
     var body: some View {
         TimelineView(.everyMinute) { context in
-            Text(context.date, style: .time)
+            Text(format.string(for: context.date))
                 .font(.speedo(size: 56))
                 .monospacedDigit()
                 .lineLimit(1)

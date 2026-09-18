@@ -39,7 +39,8 @@ nonisolated enum Theme: String, CaseIterable {
             let yellow = Color(red: 1.00, green: 0.84, blue: 0.00)
             return Palette(upperBackground: green, lowerBackground: yellow,
                            upperForeground: yellow, lowerForeground: green,
-                           roundel: roundel, mapIsLight: true)
+                           roundel: roundel, mapIsLight: true,
+                           stripes: Stripes.centred(width: 0.18, color: yellow, pinstripe: 0.015, pinstripeColor: white))
         case .blackAndGold:
             let gold = Color(red: 0.79, green: 0.64, blue: 0.15)
             return Palette(upperBackground: black, lowerBackground: black,
@@ -94,6 +95,8 @@ nonisolated struct Palette: Equatable {
     let roundel: Roundel?
     /// Liveries use the light map by day so it reads against any colour; Classic and night keep the dark one.
     let mapIsLight: Bool
+    /// Racing stripes across the upper zone, behind the speed and map.
+    var stripes: Stripes? = nil
 
     /// Night safe colours: red on black, no roundel, whatever the theme.
     static let night = Palette(upperBackground: .black, lowerBackground: .black,

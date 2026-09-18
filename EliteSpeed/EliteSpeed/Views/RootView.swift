@@ -74,7 +74,8 @@ struct RootView: View {
                     if showMap {
                         MapPanel()
                             .clipShape(RoundedRectangle(cornerRadius: 12))
-                            .frame(height: height * shares.map)
+                            .frame(height: height * shares.map - Layout.gap)
+                            .padding(.bottom, Layout.gap)
                     }
                     Spacer(minLength: 0)
                 }
@@ -82,7 +83,7 @@ struct RootView: View {
                 .padding(.horizontal, edge)
                 .frame(maxHeight: .infinity)
                 .foregroundStyle(palette.upperForeground)
-                .background(palette.upperBackground)
+                .background { upperBackground(palette, axis: .vertical) }
 
                 if showColumn {
                     VStack(spacing: 0) {
@@ -142,7 +143,7 @@ struct RootView: View {
             let roundelNatural: Double? = palette.roundel == nil
                 ? nil
                 : (panelHeight - 2 * Layout.gap) + 4 * Layout.gap
-            let widths = LandscapeLayout.widths(total: geometry.size.width - 2 * Layout.gap,
+            let widths = LandscapeLayout.widths(total: geometry.size.width - edge - 2 * Layout.gap,
                                                 column: columnContent + edge,
                                                 speedNatural: roundelNatural,
                                                 showColumn: showColumn, showMap: showMap)
@@ -191,15 +192,27 @@ struct RootView: View {
                 }
                 .padding(.vertical, edge)
                 .padding(.leading, Layout.gap)
+                .padding(.trailing, edge)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .foregroundStyle(palette.upperForeground)
-                .background(palette.upperBackground)
+                .background { upperBackground(palette, axis: .horizontal) }
                 .overlay(alignment: .bottomLeading) {
                     settingsButton.padding(.leading, Layout.gap).padding(.bottom, edge)
                 }
             }
         }
         .ignoresSafeArea(.container, edges: [.bottom, .trailing])
+    }
+
+    /// Livery colour with any stripes painted over it, extending into the safe areas like the flat colour does.
+    private func upperBackground(_ palette: Palette, axis: Axis) -> some View {
+        ZStack {
+            palette.upperBackground
+            if let stripes = palette.stripes {
+                StripesView(stripes: stripes, axis: axis)
+            }
+        }
+        .ignoresSafeArea()
     }
 
     private var settingsButton: some View {

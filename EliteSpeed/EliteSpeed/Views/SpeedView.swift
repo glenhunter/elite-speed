@@ -85,8 +85,8 @@ struct SpeedView: View {
                 .offset(y: Self.roundelBlockOffset(digitSize: digitSize, unitInk: unitInk))
             }
             .frame(width: diameter, height: diameter)
-            .frame(width: geometry.size.width, height: geometry.size.height, alignment: alignment == .bottom ? .bottom : .center)
             .padding(.bottom, alignment == .bottom ? Layout.gap : 0)
+            .frame(width: geometry.size.width, height: geometry.size.height, alignment: alignment == .bottom ? .bottom : .center)
         }
     }
 

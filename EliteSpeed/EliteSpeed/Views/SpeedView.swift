@@ -32,7 +32,7 @@ struct SpeedView: View {
                     .monospacedDigit()
                     .tracking(Self.digitTracking)
                     .lineLimit(1)
-                    .opacity(reading?.isAccuracyPoor ?? true ? 0.4 : 1)
+                    .opacity(reading?.isAccuracyPoor ?? true ? 0.6 : 1)
                 Text(units.label)
                     .font(.speedo(size: Self.unitSize))
                     .foregroundStyle(.secondary)

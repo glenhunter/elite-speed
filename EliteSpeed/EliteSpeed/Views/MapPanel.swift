@@ -11,7 +11,7 @@ struct MapPanel: View {
         Map(position: $position, interactionModes: [.pan, .zoom]) {
             UserAnnotation()
         }
-        .mapStyle(.standard(emphasis: .muted))
+        .mapStyle(.standard(elevation: .flat, emphasis: .muted, pointsOfInterest: .excludingAll, showsTraffic: false))
         .mapControls { MapUserLocationButton() }
         .onAppear(perform: followUser)
         .onChange(of: followsHeading) { followUser() }

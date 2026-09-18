@@ -11,7 +11,7 @@ struct CompassView: View {
         Text(heading.map(Heading.cardinal) ?? "--")
             .font(.speedo(.semiBold, size: 56))
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .opacity(speed.isHeadingLive ? 1 : 0.4)
+            .opacity(speed.isHeadingLive ? 1 : 0.6)
             .accessibilityLabel("Heading")
             .accessibilityValue(accessibilityValue)
     }

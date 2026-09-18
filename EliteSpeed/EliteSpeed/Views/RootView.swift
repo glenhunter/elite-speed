@@ -31,9 +31,11 @@ struct RootView: View {
         .padding(8)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(.black)
-        .overlay(alignment: .topLeading) { settingsButton }
+        .overlay(alignment: .topTrailing) { settingsButton }
         .overlay(alignment: .top) { NowPlayingToast() }
         .sheet(isPresented: $showSettings) { SettingsView() }
+        .statusBarHidden()
+        .persistentSystemOverlays(.hidden)
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { music.refresh() }
         }

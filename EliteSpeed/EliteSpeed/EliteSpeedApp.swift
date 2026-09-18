@@ -10,12 +10,22 @@ struct EliteSpeedApp: App {
         UIApplication.shared.isIdleTimerDisabled = true
     }
 
+    /// `--landscape` forces landscape so the Simulator layout can be checked without rotating it.
+    private func applyDebugOrientation() {
+        #if DEBUG
+        guard CommandLine.arguments.contains("--landscape"),
+              let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
+        scene.requestGeometryUpdate(.iOS(interfaceOrientations: .landscapeRight))
+        #endif
+    }
+
     var body: some Scene {
         WindowGroup {
             RootView()
                 .environment(speed)
                 .environment(music)
                 .preferredColorScheme(.dark)
+                .onAppear(perform: applyDebugOrientation)
         }
     }
 }

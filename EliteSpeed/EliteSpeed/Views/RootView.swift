@@ -52,21 +52,40 @@ struct RootView: View {
 
     private var showRow: Bool { showClock || showCompass }
 
-    /// [music / clock / compass column] · speed · map
+    /// [clock / compass / music column] · speed · map, at fixed shares of the width.
     private var landscape: some View {
-        HStack(spacing: 8) {
-            if showRow || showMediaControls {
-                VStack(spacing: 8) {
-                    if showMediaControls { MusicControlsView() }
-                    if showClock { ClockView() }
-                    if showCompass { CompassView() }
+        GeometryReader { geometry in
+            let width = geometry.size.width - 2 * Layout.gap
+            let shares = LandscapeLayout.shares(showColumn: showRow || showMediaControls, showMap: showMap)
+            HStack(spacing: Layout.gap) {
+                if showRow || showMediaControls {
+                    VStack(spacing: 0) {
+                        if showClock {
+                            ClockView()
+                        }
+                        if showClock && showCompass {
+                            Keyline(axis: .horizontal).padding(.horizontal, Layout.gap)
+                        }
+                        if showCompass {
+                            CompassView()
+                        }
+                        if showRow && showMediaControls {
+                            Keyline(axis: .horizontal).padding(.horizontal, Layout.gap)
+                        }
+                        if showMediaControls {
+                            MusicControlsView()
+                                .padding(Layout.gap)
+                        }
+                    }
+                    .frame(width: width * shares.column)
                 }
-                .frame(maxWidth: 220)
-            }
-            SpeedView()
-            if showMap {
-                MapPanel()
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                SpeedView()
+                    .frame(width: width * shares.speed)
+                if showMap {
+                    MapPanel()
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .frame(width: width * shares.map)
+                }
             }
         }
     }
@@ -119,8 +138,10 @@ struct RootView: View {
             showSettings = true
         } label: {
             Image(systemName: "gearshape")
-                .font(.system(size: 20, weight: .medium))
-                .foregroundStyle(.tertiary)
+                .font(.system(size: 18, weight: .medium))
+                .foregroundStyle(.secondary)
+                .frame(width: 36, height: 36)
+                .background(.ultraThinMaterial, in: Circle())
                 .frame(width: 44, height: 44)
                 .contentShape(Rectangle())
         }

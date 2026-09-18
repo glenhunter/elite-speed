@@ -10,8 +10,10 @@ final class SpeedModel: NSObject, CLLocationManagerDelegate {
     private(set) var course: Double?
     /// Direction of travel, held from the last fix where we were moving. Nil until the first movement.
     private(set) var heading: Double?
-    /// Latest position, for working out sunrise and sunset.
+    /// Latest position, for the map and for working out sunrise and sunset.
     private(set) var coordinate: CLLocationCoordinate2D?
+    /// Increments on every fix so views can react even when speed and course are unchanged.
+    private(set) var fixCount = 0
     private(set) var authorization: CLAuthorizationStatus = .notDetermined
 
     /// False when `heading` is held from earlier rather than the current fix.
@@ -47,6 +49,7 @@ final class SpeedModel: NSObject, CLLocationManagerDelegate {
         course = Heading.validCourse(location.course, accuracy: location.courseAccuracy)
         heading = Heading.heldCourse(previous: heading, kmh: reading?.kmh, course: course)
         coordinate = location.coordinate
+        fixCount += 1
     }
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {

@@ -3,6 +3,7 @@ import SwiftUI
 /// `@AppStorage` keys. Views read them directly, e.g. `@AppStorage(Settings.showMap) var showMap = true`.
 enum Settings {
     static let units = "units"
+    static let theme = "theme"
     static let digitColour = "digitColour"
     static let nightMode = "nightMode"
     static let showMap = "showMap"
@@ -13,7 +14,7 @@ enum Settings {
     static let showMediaControls = "showMediaControls"
 }
 
-enum SpeedUnit: String, CaseIterable {
+nonisolated enum SpeedUnit: String, CaseIterable {
     case kmh
     case mph
 
@@ -26,7 +27,7 @@ enum SpeedUnit: String, CaseIterable {
 }
 
 /// Dashboard foreground presets, all chosen to read on black.
-enum DigitColour: String, CaseIterable {
+nonisolated enum DigitColour: String, CaseIterable {
     case white
     case amber
     case green

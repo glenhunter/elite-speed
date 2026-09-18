@@ -5,6 +5,7 @@ import SwiftUI
 /// direction of travel when the setting is on. Not interactive; it is a dashboard, not a map app.
 struct MapPanel: View {
     @Environment(SpeedModel.self) private var speed
+    @Environment(\.palette) private var palette
     @AppStorage(Settings.mapFollowsHeading) private var followsHeading = true
     @State private var position: MapCameraPosition = .automatic
 
@@ -14,6 +15,7 @@ struct MapPanel: View {
         }
         .mapStyle(.standard(elevation: .flat, emphasis: .muted, pointsOfInterest: .excludingAll, showsTraffic: false))
         .mapControlVisibility(.hidden)
+        .environment(\.colorScheme, palette.mapIsLight ? .light : .dark)
         .onChange(of: speed.fixCount, initial: true) { aim(animated: true) }
         .onChange(of: followsHeading) { aim(animated: true) }
         .accessibilityLabel("Map")

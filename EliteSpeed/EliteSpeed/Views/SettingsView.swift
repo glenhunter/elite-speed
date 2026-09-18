@@ -3,6 +3,7 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @AppStorage(Settings.units) private var units = SpeedUnit.kmh
+    @AppStorage(Settings.theme) private var theme = Theme.classic
     @AppStorage(Settings.digitColour) private var digitColour = DigitColour.white
     @AppStorage(Settings.nightMode) private var nightMode = false
     @AppStorage(Settings.showMap) private var showMap = true
@@ -25,10 +26,13 @@ struct SettingsView: View {
                 }
 
                 Section {
-                    colourSwatches
+                    themeChips
+                    if theme == .classic {
+                        colourSwatches
+                    }
                     Toggle("Night safe colours", isOn: $nightMode)
                 } header: {
-                    Text("Colour")
+                    Text("Livery")
                 } footer: {
                     Text("Night safe colours turn the dashboard red between dusk and dawn, worked out from your position.")
                 }
@@ -63,6 +67,55 @@ struct SettingsView: View {
             }
         }
         .presentationDetents([.large])
+    }
+
+    private var themeChips: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                ForEach(Theme.allCases, id: \.self) { candidate in
+                    let palette = candidate.palette(digitColour: digitColour)
+                    Button {
+                        theme = candidate
+                    } label: {
+                        VStack(spacing: 6) {
+                            ZStack {
+                                VStack(spacing: 0) {
+                                    palette.upperBackground
+                                    palette.lowerBackground
+                                }
+                                if let roundel = palette.roundel {
+                                    Circle().fill(roundel.fill)
+                                        .overlay { if let ring = roundel.ring { Circle().strokeBorder(ring, lineWidth: 1.5) } }
+                                        .frame(width: 22, height: 22)
+                                        .offset(y: -8)
+                                } else {
+                                    Text("88")
+                                        .font(.speedo(.medium, size: 20))
+                                        .foregroundStyle(palette.upperForeground)
+                                        .offset(y: -8)
+                                }
+                            }
+                            .frame(width: 64, height: 48)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                            .overlay {
+                                RoundedRectangle(cornerRadius: 8)
+                                    .strokeBorder(.primary, lineWidth: theme == candidate ? 2.5 : 0.5)
+                                    .opacity(theme == candidate ? 1 : 0.3)
+                            }
+                            Text(candidate.label)
+                                .font(.caption)
+                                .foregroundStyle(theme == candidate ? .primary : .secondary)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(candidate.label)
+                    .accessibilityAddTraits(theme == candidate ? [.isSelected] : [])
+                }
+            }
+            .padding(.vertical, 6)
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Livery")
     }
 
     private var colourSwatches: some View {

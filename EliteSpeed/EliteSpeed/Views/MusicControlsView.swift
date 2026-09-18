@@ -6,7 +6,7 @@ struct MusicControlsView: View {
     @State private var tapCount = 0
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 8) {
             control("backward.fill", label: "Previous track") { music.previous() }
             control(music.isPlaying ? "pause.fill" : "play.fill",
                     label: music.isPlaying ? "Pause" : "Play") { music.togglePlayPause() }
@@ -25,7 +25,7 @@ struct MusicControlsView: View {
                 // Medium weight sits at a similar visual weight to Barlow.
                 .font(.system(size: 36, weight: .medium))
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .frame(minWidth: 60, minHeight: 60)
+                .frame(minWidth: 44, minHeight: 44)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

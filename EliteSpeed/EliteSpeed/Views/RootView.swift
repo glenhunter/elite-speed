@@ -1,12 +1,14 @@
 import CoreLocation
 import SwiftUI
 
-/// Picks the landscape or portrait arrangement of the panels and sets the dashboard colour.
+/// Picks the landscape or portrait arrangement of the panels and paints the two livery zones:
+/// upper under the speed and map, lower under the clock, compass and controls.
 struct RootView: View {
     @Environment(\.verticalSizeClass) private var verticalSizeClass
     @Environment(\.scenePhase) private var scenePhase
     @Environment(MusicModel.self) private var music
     @Environment(SpeedModel.self) private var speed
+    @AppStorage(Settings.theme) private var theme = Theme.classic
     @AppStorage(Settings.digitColour) private var digitColour = DigitColour.white
     @AppStorage(Settings.nightMode) private var nightMode = false
     @AppStorage(Settings.showMap) private var showMap = true
@@ -15,22 +17,23 @@ struct RootView: View {
     @AppStorage(Settings.showMediaControls) private var showMediaControls = true
     @State private var showSettings = false
 
-    private let sideInset: CGFloat = 16
+    /// Breathing room between the screen edge and the panels.
+    private let edge: CGFloat = 8
+    /// Extra inset for the clock and compass row and the controls, and their keylines.
+    private let sideInset: CGFloat = 24
 
     var body: some View {
         TimelineView(.everyMinute) { context in
+            let palette = Palette.resolve(theme: theme, digitColour: digitColour, night: isNight(at: context.date))
             Group {
                 if verticalSizeClass == .compact {
-                    landscape
+                    landscape(palette)
                 } else {
-                    portrait
+                    portrait(palette)
                 }
             }
-            .foregroundStyle(foreground(at: context.date))
+            .environment(\.palette, palette)
         }
-        .padding(8)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(.black)
         .overlay(alignment: .topTrailing) { settingsButton }
         .overlay(alignment: .top) { NowPlayingToast() }
         .sheet(isPresented: $showSettings) { SettingsView() }
@@ -41,24 +44,81 @@ struct RootView: View {
         }
     }
 
-    /// Night-safe red between civil dusk and dawn when enabled, otherwise the chosen preset.
-    private func foreground(at date: Date) -> Color {
-        if nightMode, let here = speed.coordinate,
-           Solar.isNight(at: date, latitude: here.latitude, longitude: here.longitude) {
-            return DigitColour.night
-        }
-        return digitColour.color
+    private func isNight(at date: Date) -> Bool {
+        guard nightMode, let here = speed.coordinate else { return false }
+        return Solar.isNight(at: date, latitude: here.latitude, longitude: here.longitude)
     }
 
     private var showRow: Bool { showClock || showCompass }
+    private var showColumn: Bool { showRow || showMediaControls }
+
+    // MARK: Portrait
+
+    /// speed · map above, [clock | compass] · keyline · music below, at fixed shares of the height.
+    private func portrait(_ palette: Palette) -> some View {
+        GeometryReader { geometry in
+            let height = geometry.size.height
+            let rowWidth = geometry.size.width - 2 * sideInset
+            let shares = PortraitLayout.shares(showMap: showMap, showRow: showRow, showMedia: showMediaControls)
+            VStack(spacing: 0) {
+                VStack(spacing: 0) {
+                    SpeedView(alignment: .bottom)
+                        .frame(height: height * shares.speed - edge)
+                    if showMap {
+                        MapPanel()
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .frame(height: height * shares.map)
+                    }
+                }
+                .padding(.top, edge)
+                .padding(.horizontal, edge)
+                .foregroundStyle(palette.upperForeground)
+                .background(palette.upperBackground)
+
+                if showColumn {
+                    VStack(spacing: 0) {
+                        if showRow {
+                            HStack(spacing: 0) {
+                                if showClock {
+                                    ClockView()
+                                        .frame(width: showCompass ? rowWidth * 2 / 3 : rowWidth)
+                                }
+                                if showClock && showCompass {
+                                    Keyline(axis: .vertical)
+                                        .padding(.vertical, Layout.gap)
+                                }
+                                if showCompass {
+                                    CompassView()
+                                }
+                            }
+                            .frame(height: height * shares.row)
+                        }
+                        if showMediaControls {
+                            if showRow {
+                                Keyline(axis: .horizontal)
+                            }
+                            MusicControlsView()
+                                .padding(.vertical, Layout.gap)
+                                .frame(height: height * shares.media)
+                        }
+                    }
+                    .padding(.horizontal, sideInset)
+                    .foregroundStyle(palette.lowerForeground)
+                    .background(palette.lowerBackground)
+                }
+            }
+        }
+    }
+
+    // MARK: Landscape
 
     /// [clock / compass / music column] · speed · map, at fixed shares of the width.
-    private var landscape: some View {
+    private func landscape(_ palette: Palette) -> some View {
         GeometryReader { geometry in
-            let width = geometry.size.width - 2 * Layout.gap
-            let shares = LandscapeLayout.shares(showColumn: showRow || showMediaControls, showMap: showMap)
-            HStack(spacing: Layout.gap) {
-                if showRow || showMediaControls {
+            let width = geometry.size.width
+            let shares = LandscapeLayout.shares(showColumn: showColumn, showMap: showMap)
+            HStack(spacing: 0) {
+                if showColumn {
                     VStack(spacing: 0) {
                         if showClock {
                             ClockView()
@@ -77,59 +137,27 @@ struct RootView: View {
                                 .padding(Layout.gap)
                         }
                     }
+                    .padding(.vertical, edge)
+                    .padding(.leading, edge)
                     .frame(width: width * shares.column)
+                    .foregroundStyle(palette.lowerForeground)
+                    .background(palette.lowerBackground)
                 }
-                SpeedView()
-                    .frame(width: width * shares.speed)
-                if showMap {
-                    MapPanel()
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .frame(width: width * shares.map)
-                }
-            }
-        }
-    }
-
-    /// speed · map · [clock | compass] · keyline · music, at fixed shares of the height.
-    private var portrait: some View {
-        GeometryReader { geometry in
-            let height = geometry.size.height
-            let rowWidth = geometry.size.width - 2 * sideInset
-            let shares = PortraitLayout.shares(showMap: showMap, showRow: showRow, showMedia: showMediaControls)
-            VStack(spacing: 0) {
-                SpeedView(alignment: .bottom)
-                    .frame(height: height * shares.speed)
-                if showMap {
-                    MapPanel()
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .frame(height: height * shares.map)
-                }
-                if showRow {
-                    HStack(spacing: 0) {
-                        if showClock {
-                            ClockView()
-                                .frame(width: showCompass ? rowWidth * 2 / 3 : rowWidth)
-                        }
-                        if showClock && showCompass {
-                            Keyline(axis: .vertical)
-                                .padding(.vertical, Layout.gap)
-                        }
-                        if showCompass {
-                            CompassView()
-                        }
+                HStack(spacing: Layout.gap) {
+                    SpeedView()
+                    if showMap {
+                        MapPanel()
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .frame(width: width * shares.map - edge - Layout.gap)
                     }
-                    .frame(height: height * shares.row)
                 }
-                if showMediaControls {
-                    if showRow {
-                        Keyline(axis: .horizontal)
-                    }
-                    MusicControlsView()
-                        .padding(.vertical, Layout.gap)
-                        .frame(height: height * shares.media)
-                }
+                .padding(.vertical, edge)
+                .padding(.trailing, edge)
+                .padding(.leading, Layout.gap)
+                .frame(width: width * (shares.speed + shares.map))
+                .foregroundStyle(palette.upperForeground)
+                .background(palette.upperBackground)
             }
-            .padding(.horizontal, sideInset)
         }
     }
 

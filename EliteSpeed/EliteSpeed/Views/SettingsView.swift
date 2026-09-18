@@ -3,7 +3,7 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @AppStorage(Settings.showMap) private var showMap = true
-    @AppStorage(Settings.mapFollowsHeading) private var mapFollowsHeading = false
+    @AppStorage(Settings.mapFollowsHeading) private var mapFollowsHeading = true
     @AppStorage(Settings.units) private var units = SpeedUnit.kmh
 
     var body: some View {

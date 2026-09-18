@@ -6,6 +6,8 @@ struct ClockView: View {
             Text(context.date, style: .time)
                 .font(.speedo(size: 56))
                 .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .accessibilityAddTraits(.updatesFrequently)

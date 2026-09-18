@@ -48,6 +48,7 @@ struct RootView: View {
     private var portrait: some View {
         GeometryReader { geometry in
             let height = geometry.size.height
+            let rowWidth = geometry.size.width - 2 * sideInset
             VStack(spacing: 0) {
                 SpeedView()
                     .frame(height: height * (showMap ? 0.25 : 0.75))
@@ -58,6 +59,7 @@ struct RootView: View {
                 }
                 HStack(spacing: 0) {
                     ClockView()
+                        .frame(width: rowWidth * 2 / 3)
                     Keyline(axis: .vertical)
                         .padding(.vertical, 12)
                     CompassView()
@@ -68,9 +70,11 @@ struct RootView: View {
                     .padding(.vertical, 12)
                     .frame(height: height * 0.13)
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, sideInset)
         }
     }
+
+    private let sideInset: CGFloat = 16
 
     private var settingsButton: some View {
         Button {

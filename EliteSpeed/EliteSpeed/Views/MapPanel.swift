@@ -1,10 +1,10 @@
 import MapKit
 import SwiftUI
 
-/// North-up map centred on the car. Pan and zoom only; no rotate, so north stays up
-/// unless the follows-heading setting is on.
+/// Map centred on the car, rotating to the direction of travel by default. Pan and zoom only;
+/// touch cannot rotate it, so with the setting off it stays north-up.
 struct MapPanel: View {
-    @AppStorage(Settings.mapFollowsHeading) private var followsHeading = false
+    @AppStorage(Settings.mapFollowsHeading) private var followsHeading = true
     @State private var position: MapCameraPosition = .automatic
 
     var body: some View {

@@ -11,9 +11,9 @@ struct SpeedView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: -36) {
             Text(digits)
-                .font(.speedo(.medium, size: 220))
+                .font(.speedo(.medium, size: 242))
                 .monospacedDigit()
                 .tracking(-4)
                 .minimumScaleFactor(0.3)

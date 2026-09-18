@@ -76,7 +76,7 @@ struct RootView: View {
             let rowWidth = geometry.size.width - 2 * sideInset
             let shares = PortraitLayout.shares(showMap: showMap, showRow: showRow, showMedia: showMediaControls)
             VStack(spacing: 0) {
-                SpeedView()
+                SpeedView(alignment: .bottom)
                     .frame(height: height * shares.speed)
                 if showMap {
                     MapPanel()
@@ -91,7 +91,7 @@ struct RootView: View {
                         }
                         if showClock && showCompass {
                             Keyline(axis: .vertical)
-                                .padding(.vertical, 12)
+                                .padding(.vertical, Layout.gap)
                         }
                         if showCompass {
                             CompassView()
@@ -104,7 +104,7 @@ struct RootView: View {
                         Keyline(axis: .horizontal)
                     }
                     MusicControlsView()
-                        .padding(.vertical, 12)
+                        .padding(.vertical, Layout.gap)
                         .frame(height: height * shares.media)
                 }
             }

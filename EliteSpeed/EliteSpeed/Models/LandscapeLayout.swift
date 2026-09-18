@@ -1,18 +1,36 @@
 import Foundation
 
-/// Share of the landscape width each panel gets. Hidden panels give their share to the speed.
+/// Landscape widths. The column is as wide as its stacked buttons or the clock need; the speed
+/// takes what a full-height roundel needs, or 35:40 with the map for bare digits; the map gets
+/// the rest. Hidden panels give their width to the speed.
 nonisolated enum LandscapeLayout {
-    struct Shares: Equatable {
+    struct Widths: Equatable {
         let column: Double
         let speed: Double
         let map: Double
     }
 
-    static func shares(showColumn: Bool, showMap: Bool) -> Shares {
-        // Integer percentages so the sums stay exact.
-        let column = showColumn ? 25 : 0
-        let map = showMap ? 40 : 0
-        let speed = 100 - column - map
-        return Shares(column: Double(column) / 100, speed: Double(speed) / 100, map: Double(map) / 100)
+    /// Narrowest useful map: enough to see the next junction.
+    static let minimumMapWidth: Double = 150
+
+    /// Stacked buttons above the clock: the wider of the two, plus padding either side.
+    static func columnWidth(buttonSize: Double, clockWidth: Double, padding: Double) -> Double {
+        max(buttonSize, clockWidth) + 2 * padding
+    }
+
+    /// `speedNatural` is the width a full-height roundel wants; nil means bare digits.
+    static func widths(total: Double, column: Double, speedNatural: Double?, showColumn: Bool, showMap: Bool) -> Widths {
+        let columnWidth = showColumn ? column : 0
+        let remainder = total - columnWidth
+        guard showMap else {
+            return Widths(column: columnWidth, speed: remainder, map: 0)
+        }
+        let speed: Double
+        if let speedNatural {
+            speed = min(speedNatural, remainder - minimumMapWidth)
+        } else {
+            speed = remainder * 35 / 75
+        }
+        return Widths(column: columnWidth, speed: speed, map: remainder - speed)
     }
 }

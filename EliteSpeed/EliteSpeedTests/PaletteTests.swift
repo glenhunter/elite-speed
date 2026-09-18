@@ -22,6 +22,13 @@ struct PaletteTests {
         #expect(p.upperBackground != p.lowerBackground)
     }
 
+    @Test func liveriesUseTheLightMapAndClassicTheDark() {
+        for theme in Theme.allCases {
+            let p = Palette.resolve(theme: theme, digitColour: .white, night: false)
+            #expect(p.mapIsLight == (theme != .classic), "\(theme)")
+        }
+    }
+
     @Test func nightOverridesEveryTheme() {
         for theme in Theme.allCases {
             let p = Palette.resolve(theme: theme, digitColour: .white, night: true)

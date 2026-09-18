@@ -10,14 +10,14 @@ nonisolated enum PortraitLayout {
         let media: Double
     }
 
-    /// Clock and compass row plus controls together, always reserved.
-    private static let lowerShare = 0.25
+    /// Clock and compass row (7%) plus controls (13%), always reserved.
+    private static let lowerShare = 0.20
 
     /// `speed` defaults to the design's quarter; a roundel asks for more and the map yields it.
     static func shares(showMap: Bool, showRow: Bool, showMedia: Bool, speed: Double = 0.25) -> Shares {
         Shares(speed: speed,
                map: showMap ? 1 - speed - lowerShare : 0,
-               row: showRow ? 0.12 : 0,
+               row: showRow ? 0.07 : 0,
                media: showMedia ? 0.13 : 0)
     }
 

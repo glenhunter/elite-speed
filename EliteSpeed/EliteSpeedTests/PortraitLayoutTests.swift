@@ -5,7 +5,7 @@ struct PortraitLayoutTests {
 
     @Test func everythingShownUsesTheDesignShares() {
         let s = PortraitLayout.shares(showMap: true, showRow: true, showMedia: true)
-        #expect(s.speed == 0.25 && s.map == 0.50 && s.row == 0.12 && s.media == 0.13)
+        #expect(s.speed == 0.25 && s.map == 0.55 && s.row == 0.07 && s.media == 0.13)
     }
 
     @Test func hiddenMapLeavesTheSpeedWhereItWas() {
@@ -25,9 +25,9 @@ struct PortraitLayoutTests {
     }
 
     @Test func largerSpeedShareComesOutOfTheMap() {
-        // Clock, compass and controls keep their quarter; the map gives up the difference.
+        // Clock, compass and controls keep their fifth; the map gives up the difference.
         let s = PortraitLayout.shares(showMap: true, showRow: true, showMedia: true, speed: 0.48)
-        #expect(s.speed == 0.48 && abs(s.map - 0.27) < 0.0001 && s.row == 0.12 && s.media == 0.13)
+        #expect(s.speed == 0.48 && abs(s.map - 0.32) < 0.0001 && s.row == 0.07 && s.media == 0.13)
     }
 
     @Test func roundelPanelHeightIsTheCircleWithinTheSideMarginsPlusAGapBelow() {

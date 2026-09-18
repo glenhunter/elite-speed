@@ -9,7 +9,7 @@ struct CompassView: View {
 
     var body: some View {
         Text(heading.map(Heading.cardinal) ?? "--")
-            .font(.speedo(.semiBold, size: 56))
+            .font(.speedo(.semiBold, size: 28))
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .opacity(speed.isHeadingLive ? 1 : 0.6)
             .accessibilityLabel("Heading")

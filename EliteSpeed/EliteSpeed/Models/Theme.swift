@@ -39,12 +39,12 @@ nonisolated enum Theme: String, CaseIterable {
             let yellow = Color(red: 1.00, green: 0.84, blue: 0.00)
             return Palette(upperBackground: green, lowerBackground: yellow,
                            upperForeground: yellow, lowerForeground: green,
-                           roundel: roundel, mapIsLight: false)
+                           roundel: roundel, mapIsLight: true)
         case .blackAndGold:
             let gold = Color(red: 0.79, green: 0.64, blue: 0.15)
             return Palette(upperBackground: black, lowerBackground: black,
                            upperForeground: gold, lowerForeground: gold,
-                           roundel: Palette.Roundel(fill: black, ring: gold, digits: gold), mapIsLight: false)
+                           roundel: Palette.Roundel(fill: black, ring: gold, digits: gold), mapIsLight: true)
         case .gulf:
             let blue = Color(red: 0.49, green: 0.72, blue: 0.85)
             let orange = Color(red: 0.95, green: 0.55, blue: 0.16)
@@ -56,17 +56,17 @@ nonisolated enum Theme: String, CaseIterable {
             let navy = Color(red: 0.06, green: 0.17, blue: 0.35)
             return Palette(upperBackground: navy, lowerBackground: white,
                            upperForeground: white, lowerForeground: navy,
-                           roundel: roundel, mapIsLight: false)
+                           roundel: roundel, mapIsLight: true)
         case .rossoCorsa:
             let red = Color(red: 0.83, green: 0.00, blue: 0.00)
             return Palette(upperBackground: red, lowerBackground: black,
                            upperForeground: white, lowerForeground: white,
-                           roundel: roundel, mapIsLight: false)
+                           roundel: roundel, mapIsLight: true)
         case .alpine:
             let blue = Color(red: 0.17, green: 0.42, blue: 0.77)
             return Palette(upperBackground: blue, lowerBackground: white,
                            upperForeground: white, lowerForeground: blue,
-                           roundel: roundel, mapIsLight: false)
+                           roundel: roundel, mapIsLight: true)
         case .motorsport:
             let blue = Color(red: 0.11, green: 0.25, blue: 0.58)
             return Palette(upperBackground: white, lowerBackground: white,
@@ -92,7 +92,7 @@ nonisolated struct Palette: Equatable {
     let lowerForeground: Color
     /// Present on liveries: the speed sits in a door-number circle.
     let roundel: Roundel?
-    /// Pale backgrounds get the light map so the panel doesn't look like a hole.
+    /// Liveries use the light map by day so it reads against any colour; Classic and night keep the dark one.
     let mapIsLight: Bool
 
     /// Night safe colours: red on black, no roundel, whatever the theme.

@@ -34,7 +34,9 @@ struct RootView: View {
             }
             .environment(\.palette, palette)
         }
-        .overlay(alignment: .topTrailing) { settingsButton }
+        .overlay(alignment: .topTrailing) {
+            if verticalSizeClass != .compact { settingsButton }
+        }
         .overlay(alignment: .top) { NowPlayingToast() }
         .sheet(isPresented: $showSettings) { SettingsView() }
         .statusBarHidden()
@@ -54,7 +56,7 @@ struct RootView: View {
 
     // MARK: Portrait
 
-    /// speed · map above, [clock | compass] · keyline · music below, at fixed shares of the height.
+    /// speed · map above; music · keyline · [clock | compass] below, at fixed shares of the height.
     private func portrait(_ palette: Palette) -> some View {
         GeometryReader { geometry in
             let height = geometry.size.height
@@ -84,7 +86,16 @@ struct RootView: View {
 
                 if showColumn {
                     VStack(spacing: 0) {
+                        if showMediaControls {
+                            MusicControlsView()
+                                .padding(.top, Layout.gap)
+                                .padding(.bottom, 2 * Layout.gap)
+                                .frame(height: height * shares.media)
+                        }
                         if showRow {
+                            if showMediaControls {
+                                Keyline(axis: .horizontal)
+                            }
                             HStack(spacing: 0) {
                                 if showClock {
                                     ClockView()
@@ -100,15 +111,6 @@ struct RootView: View {
                             }
                             .frame(height: height * shares.row)
                         }
-                        if showMediaControls {
-                            if showRow {
-                                Keyline(axis: .horizontal)
-                            }
-                            MusicControlsView()
-                                .padding(.top, 2 * Layout.gap)
-                                .padding(.bottom, Layout.gap)
-                                .frame(height: height * shares.media)
-                        }
                     }
                     .padding(.horizontal, sideInset)
                     .foregroundStyle(palette.lowerForeground)
@@ -120,54 +122,84 @@ struct RootView: View {
 
     // MARK: Landscape
 
-    /// [clock / compass / music column] · speed · map, at fixed shares of the width.
+    /// Media button height in the landscape column; their width matches the keylines.
+    private let landscapeButtonHeight: CGFloat = 64
+    /// Widest time the clock can show at its landscape size, for the column width.
+    private let clockWidth = Font.speedoWidth(of: "88:88 AM", size: ClockView.fontSize)
+
+    /// [stacked music above, clock and compass below] · speed · map. The column is as wide as
+    /// its contents need; the speed takes what a full-height roundel wants, or 35:40 with the
+    /// map for bare digits. The map runs to the trailing edge, and content runs under the home
+    /// indicator so the map's bottom edge matches its top. The gear sits bottom-left of the
+    /// green zone, clear of the map.
     private func landscape(_ palette: Palette) -> some View {
         GeometryReader { geometry in
-            let width = geometry.size.width
-            let shares = LandscapeLayout.shares(showColumn: showColumn, showMap: showMap)
+            let columnContent = LandscapeLayout.columnWidth(buttonSize: landscapeButtonHeight,
+                                                             clockWidth: clockWidth,
+                                                             padding: Layout.gap)
+            let keylineWidth = columnContent - 2 * Layout.gap
+            let panelHeight = geometry.size.height - 2 * edge
+            let roundelNatural: Double? = palette.roundel == nil
+                ? nil
+                : (panelHeight - 2 * Layout.gap) + 4 * Layout.gap
+            let widths = LandscapeLayout.widths(total: geometry.size.width - 2 * Layout.gap,
+                                                column: columnContent + edge,
+                                                speedNatural: roundelNatural,
+                                                showColumn: showColumn, showMap: showMap)
             HStack(spacing: 0) {
                 if showColumn {
                     VStack(spacing: 0) {
-                        if showClock {
-                            ClockView()
+                        if showMediaControls {
+                            MusicControlsView(buttonWidth: keylineWidth, buttonHeight: landscapeButtonHeight, axis: .vertical)
+                                .padding(.top, Layout.gap)
                         }
-                        if showClock && showCompass {
-                            Keyline(axis: .horizontal).padding(.horizontal, Layout.gap)
+                        Spacer(minLength: Layout.gap)
+                        if showClock {
+                            if showMediaControls {
+                                Keyline(axis: .horizontal)
+                            }
+                            ClockView()
+                                .fixedSize(horizontal: false, vertical: true)
+                                .padding(.vertical, Layout.gap)
                         }
                         if showCompass {
+                            if showClock || showMediaControls {
+                                Keyline(axis: .horizontal)
+                            }
                             CompassView()
-                        }
-                        if showRow && showMediaControls {
-                            Keyline(axis: .horizontal).padding(.horizontal, Layout.gap)
-                        }
-                        if showMediaControls {
-                            MusicControlsView()
-                                .padding(.top, 2 * Layout.gap)
-                                .padding([.horizontal, .bottom], Layout.gap)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .padding(.top, Layout.gap)
+                                .padding(.bottom, 2 * Layout.gap)
                         }
                     }
-                    .padding(.vertical, edge)
+                    .padding(.horizontal, Layout.gap)
+                    .padding(.top, edge)
                     .padding(.leading, edge)
-                    .frame(width: width * shares.column)
+                    .frame(width: widths.column)
+                    .frame(maxHeight: .infinity)
                     .foregroundStyle(palette.lowerForeground)
                     .background(palette.lowerBackground)
                 }
                 HStack(spacing: Layout.gap) {
                     SpeedView()
+                        .frame(width: widths.speed)
                     if showMap {
                         MapPanel()
                             .clipShape(RoundedRectangle(cornerRadius: 12))
-                            .frame(width: width * shares.map - edge - Layout.gap)
+                            .frame(width: widths.map)
                     }
                 }
                 .padding(.vertical, edge)
-                .padding(.trailing, edge)
                 .padding(.leading, Layout.gap)
-                .frame(width: width * (shares.speed + shares.map))
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .foregroundStyle(palette.upperForeground)
                 .background(palette.upperBackground)
+                .overlay(alignment: .bottomLeading) {
+                    settingsButton.padding(.leading, Layout.gap).padding(.bottom, edge)
+                }
             }
         }
+        .ignoresSafeArea(.container, edges: [.bottom, .trailing])
     }
 
     private var settingsButton: some View {

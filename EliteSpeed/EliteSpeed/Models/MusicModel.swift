@@ -26,6 +26,10 @@ final class MusicModel {
     @ObservationIgnored private var observers: [NSObjectProtocol] = []
     @ObservationIgnored private var nowPlayingID: UInt64?
     @ObservationIgnored private var dismissTask: Task<Void, Never>?
+    #if DEBUG
+    /// Fake track for the Simulator, which has no music library. Survives refreshes.
+    @ObservationIgnored private var sampleTrack: TrackInfo?
+    #endif
 
     init() {
         // Playback control works without this, but nowPlayingItem is nil until the library is authorized.
@@ -50,6 +54,10 @@ final class MusicModel {
                 showToast(TrackInfo(title: "Sample Track", artist: "Sample Artist", artwork: nil))
             }
         }
+        if CommandLine.arguments.contains("--sample-track") {
+            sampleTrack = TrackInfo(title: "Radar Love", artist: "Golden Earring", artwork: nil)
+            refresh()
+        }
         #endif
     }
 
@@ -61,6 +69,14 @@ final class MusicModel {
     /// Re-reads player state. Called on notifications and when the app returns to the foreground,
     /// since lock-screen and headphone controls change state while we're not listening.
     func refresh() {
+        #if DEBUG
+        if let sampleTrack {
+            title = sampleTrack.title
+            artist = sampleTrack.artist
+            isPlaying = true
+            return
+        }
+        #endif
         isPlaying = player.playbackState == .playing
         let item = player.nowPlayingItem
         title = item?.title

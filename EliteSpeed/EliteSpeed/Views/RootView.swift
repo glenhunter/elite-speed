@@ -132,7 +132,7 @@ struct RootView: View {
     /// Widest time the clock can show at its landscape size, for the column width.
     private let clockWidth = Font.speedoWidth(of: "88:88 AM", size: ClockView.fontSize)
 
-    /// [stacked music above, clock and compass below] · speed · map. The column is as wide as
+    /// [stacked music and now-playing above, clock and compass below] · speed · map. The column is as wide as
     /// its contents need; the speed takes what a full-height roundel wants, or 35:40 with the
     /// map for bare digits. The map runs to the trailing edge, and content runs under the home
     /// indicator so the map's bottom edge matches its top. The gear sits bottom-left of the
@@ -156,6 +156,8 @@ struct RootView: View {
                     VStack(spacing: 0) {
                         if showMediaControls {
                             MusicControlsView(buttonWidth: keylineWidth, buttonHeight: landscapeButtonHeight, axis: .vertical)
+                                .padding(.top, Layout.gap)
+                            NowPlayingView()
                                 .padding(.top, Layout.gap)
                         }
                         Spacer(minLength: Layout.gap)

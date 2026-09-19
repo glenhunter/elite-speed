@@ -70,55 +70,55 @@ struct SettingsView: View {
     }
 
     private var themeChips: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                ForEach(Theme.allCases, id: \.self) { candidate in
-                    let palette = candidate.palette(digitColour: digitColour)
-                    Button {
-                        theme = candidate
-                    } label: {
-                        VStack(spacing: 6) {
-                            ZStack {
-                                VStack(spacing: 0) {
-                                    palette.upperBackground
-                                        .overlay {
-                                            if let stripes = palette.stripes {
-                                                StripesView(stripes: stripes, axis: .vertical)
-                                            }
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 72), spacing: 12)], spacing: 16) {
+            ForEach(Theme.allCases, id: \.self) { candidate in
+                let palette = candidate.palette(digitColour: digitColour)
+                Button {
+                    theme = candidate
+                } label: {
+                    VStack(spacing: 6) {
+                        ZStack {
+                            VStack(spacing: 0) {
+                                palette.upperBackground
+                                    .overlay {
+                                        if let stripes = palette.stripes {
+                                            StripesView(stripes: stripes, axis: .vertical)
                                         }
-                                    palette.lowerBackground
-                                }
-                                if let roundel = palette.roundel {
-                                    Circle().fill(roundel.fill)
-                                        .overlay { if let ring = roundel.ring { Circle().strokeBorder(ring, lineWidth: 1.5) } }
-                                        .frame(width: 22, height: 22)
-                                        .offset(y: -8)
-                                } else {
-                                    Text("88")
-                                        .font(.speedo(.medium, size: 20))
-                                        .foregroundStyle(palette.upperForeground)
-                                        .offset(y: -8)
-                                }
+                                    }
+                                palette.lowerBackground
                             }
-                            .frame(width: 64, height: 48)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                            .overlay {
-                                RoundedRectangle(cornerRadius: 8)
-                                    .strokeBorder(.primary, lineWidth: theme == candidate ? 2.5 : 0.5)
-                                    .opacity(theme == candidate ? 1 : 0.3)
+                            if let roundel = palette.roundel {
+                                Circle().fill(roundel.fill)
+                                    .overlay { if let ring = roundel.ring { Circle().strokeBorder(ring, lineWidth: 1.5) } }
+                                    .frame(width: 22, height: 22)
+                                    .offset(y: -8)
+                            } else {
+                                Text("88")
+                                    .font(.speedo(.medium, size: 20))
+                                    .foregroundStyle(palette.upperForeground)
+                                    .offset(y: -8)
                             }
-                            Text(candidate.label)
-                                .font(.caption)
-                                .foregroundStyle(theme == candidate ? .primary : .secondary)
                         }
+                        .frame(width: 64, height: 48)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 8)
+                                .strokeBorder(.primary, lineWidth: theme == candidate ? 2.5 : 0.5)
+                                .opacity(theme == candidate ? 1 : 0.3)
+                        }
+                        Text(candidate.label)
+                            .font(.caption)
+                            .multilineTextAlignment(.center)
+                            .foregroundStyle(theme == candidate ? .primary : .secondary)
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(candidate.label)
-                    .accessibilityAddTraits(theme == candidate ? [.isSelected] : [])
+                    .frame(maxWidth: .infinity)
                 }
+                .buttonStyle(.plain)
+                .accessibilityLabel(candidate.label)
+                .accessibilityAddTraits(theme == candidate ? [.isSelected] : [])
             }
-            .padding(.vertical, 6)
         }
+        .padding(.vertical, 6)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Livery")
     }

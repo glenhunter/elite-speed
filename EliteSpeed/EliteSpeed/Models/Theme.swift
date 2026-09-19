@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// Racing liveries as colour schemes. Classic is the plain black dashboard with a chosen digit colour.
+/// Racing liveries as colour schemes, shown under plain colour names. Classic is the plain black
+/// dashboard with a chosen digit colour. The case names are stored in settings, so they stay put.
 nonisolated enum Theme: String, CaseIterable {
     case classic
     case teamLotus
@@ -15,14 +16,14 @@ nonisolated enum Theme: String, CaseIterable {
     var label: String {
         switch self {
         case .classic: "Classic"
-        case .teamLotus: "Team Lotus"
+        case .teamLotus: "Green & Yellow"
         case .blackAndGold: "Black and Gold"
-        case .gulf: "Gulf"
-        case .rothmans: "Rothmans"
-        case .rossoCorsa: "Rosso Corsa"
-        case .alpine: "Alpine"
+        case .gulf: "Pale Blue"
+        case .rothmans: "White"
+        case .rossoCorsa: "Red"
+        case .alpine: "Blue & White"
         case .motorsport: "Motorsport"
-        case .martini: "Martini"
+        case .martini: "Blue Stripes"
         }
     }
 

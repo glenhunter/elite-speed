@@ -9,8 +9,10 @@ extension Font {
         case semiBold = "BarlowSemiCondensed-SemiBold"
     }
 
+    /// Fixed size: the dashboard sizes its own text to the panels, so the system's Dynamic Type
+    /// and Larger Text settings must not scale it again.
     static func speedo(_ weight: SpeedoWeight = .regular, size: CGFloat) -> Font {
-        .custom(weight.rawValue, size: size)
+        .custom(weight.rawValue, fixedSize: size)
     }
 
     /// Typographic width of `text` in the Barlow weight and size, for laying out around it.

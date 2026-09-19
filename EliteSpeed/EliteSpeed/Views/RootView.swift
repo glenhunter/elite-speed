@@ -25,6 +25,7 @@ struct RootView: View {
     var body: some View {
         TimelineView(.everyMinute) { context in
             let palette = Palette.resolve(theme: theme, digitColour: digitColour, night: isNight(at: context.date))
+            let _ = EliteSpeedApp.keepScreenAwake()
             Group {
                 if verticalSizeClass == .compact {
                     landscape(palette)
@@ -42,7 +43,10 @@ struct RootView: View {
         .statusBarHidden()
         .persistentSystemOverlays(.hidden)
         .onChange(of: scenePhase) { _, phase in
-            if phase == .active { music.refresh() }
+            if phase == .active {
+                music.refresh()
+                EliteSpeedApp.keepScreenAwake()
+            }
         }
     }
 

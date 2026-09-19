@@ -6,7 +6,13 @@ struct EliteSpeedApp: App {
     @State private var music = MusicModel()
 
     init() {
-        // The app only runs in the foreground on a mounted phone; never let the screen lock.
+        Self.keepScreenAwake()
+    }
+
+    /// The app only runs in the foreground on a mounted phone; never let the screen dim or lock.
+    /// iOS can quietly reset this flag, for example around system alerts such as the permission
+    /// prompts on first launch, so it is re-asserted whenever the app becomes active and each minute.
+    static func keepScreenAwake() {
         UIApplication.shared.isIdleTimerDisabled = true
     }
 

@@ -21,11 +21,11 @@ nonisolated enum Solar {
         }
     }
 
-    private static var utcCalendar: Calendar {
+    private static let utcCalendar: Calendar = {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: "UTC")!
         return calendar
-    }
+    }()
 
     /// Rise and set on the UTC calendar day containing `date`.
     static func events(on date: Date, latitude: Double, longitude: Double, zenith: Zenith) -> Events {
@@ -96,8 +96,12 @@ nonisolated enum Solar {
         return wrap(localMeanTime - longitude / 15, 24)
     }
 
+    /// Classifies a day on which the sun never crosses the zenith. On the boundary day only one of
+    /// the two solves is out of range, so the verdict comes from whichever one failed.
     private static func polarCase(dayOfYear: Double, latitude: Double, longitude: Double, zenith: Double) -> Events {
-        let (cosH, _, _) = cosHourAngle(dayOfYear: dayOfYear, latitude: latitude, longitude: longitude, zenith: zenith, rising: true)
-        return cosH > 1 ? .alwaysDark : .alwaysLight
+        let rise = cosHourAngle(dayOfYear: dayOfYear, latitude: latitude, longitude: longitude, zenith: zenith, rising: true).cosH
+        let set = cosHourAngle(dayOfYear: dayOfYear, latitude: latitude, longitude: longitude, zenith: zenith, rising: false).cosH
+        let outOfRange = (-1...1).contains(rise) ? set : rise
+        return outOfRange > 1 ? .alwaysDark : .alwaysLight
     }
 }

@@ -17,6 +17,11 @@ struct HeadingTests {
         #expect(Heading.validCourse(90, accuracy: 5) == 90)
     }
 
+    @Test func courseWithUnknownAccuracyIsInvalid() {
+        // Core Location reports a negative courseAccuracy when the course cannot be trusted.
+        #expect(Heading.validCourse(90, accuracy: -1) == nil)
+    }
+
     // MARK: Holding the course
 
     @Test func liveCourseReplacesHeldCourse() {
@@ -45,25 +50,6 @@ struct HeadingTests {
         #expect(!Heading.isCourseLive(kmh: 3, course: 90))
         #expect(!Heading.isCourseLive(kmh: 30, course: nil))
         #expect(!Heading.isCourseLive(kmh: nil, course: 90))
-    }
-
-    // MARK: Shortest rotation
-
-    @Test func deltaAcrossNorthGoesTheShortWay() {
-        #expect(Heading.shortestDelta(from: 358, to: 2) == 4)
-    }
-
-    @Test func deltaBackAcrossNorthIsNegative() {
-        #expect(Heading.shortestDelta(from: 2, to: 358) == -4)
-    }
-
-    @Test func deltaWithinRangeIsPlainDifference() {
-        #expect(Heading.shortestDelta(from: 90, to: 120) == 30)
-    }
-
-    @Test func deltaFromAccumulatedAngleWrapsCorrectly() {
-        // displayedAngle grows without bound; 730 is the same direction as 10.
-        #expect(Heading.shortestDelta(from: 730, to: 20) == 10)
     }
 
     // MARK: Cardinal labels

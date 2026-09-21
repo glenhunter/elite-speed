@@ -5,7 +5,8 @@ struct SpeedView: View {
     /// Where the readout sits in its panel: bottom in portrait so it hugs the map, centre in landscape.
     var alignment: Alignment = .center
     /// Space between the panel's sides and the roundel.
-    var roundelSideInset: CGFloat = 2 * Layout.gap
+    var roundelSideInset: CGFloat = SpeedView.defaultRoundelSideInset
+    static let defaultRoundelSideInset: CGFloat = 2 * Layout.gap
 
     @Environment(SpeedModel.self) private var speed
     @Environment(\.palette) private var palette
@@ -37,7 +38,13 @@ struct SpeedView: View {
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Speed")
-        .accessibilityValue(reading?.displayValue(in: units).map { "\($0) \(units.label)" } ?? "no reading")
+        .accessibilityValue(accessibilityValue)
+    }
+
+    private var accessibilityValue: String {
+        guard let reading, let value = reading.displayValue(in: units) else { return "no reading" }
+        let text = "\(value) \(units.label)"
+        return reading.isAccuracyPoor ? text + ", GPS accuracy poor" : text
     }
 
     // MARK: Bare digits (Classic and night)
@@ -59,15 +66,15 @@ struct SpeedView: View {
 
     // MARK: Roundel (liveries)
 
-    /// A door-number circle inset from the panel's sides, digits and unit inside. Sized for two
-    /// digits; three-digit speeds scale down to fit. Bottom-aligned it sits flush with the top of
-    /// its panel and a gap above what follows; centred it keeps a gap above and below.
+    /// A door-number circle inset from the panel's sides, digits and unit inside. The digits are
+    /// solved to fit the circle for however many there are. Bottom-aligned it sits flush with the
+    /// top of its panel and a gap above what follows; centred it keeps a gap above and below.
     private func roundelReadout(_ roundel: Palette.Roundel) -> some View {
         GeometryReader { geometry in
             let verticalRoom = geometry.size.height - (alignment == .bottom ? 1 : 2) * Layout.gap
             let diameter = min(geometry.size.width - 2 * roundelSideInset, verticalRoom)
             let unitInk = Self.inkBounds(of: units.label, font: Self.roundelUnitFont)
-            let digitSize = Self.roundelDigitSize(diameter: diameter, unitInkHeight: unitInk.height)
+            let digitSize = Self.roundelDigitSize(diameter: diameter, digits: max(2, digits.count), unitInkHeight: unitInk.height)
             ZStack {
                 Circle().fill(roundel.fill)
                 if let ring = roundel.ring {
@@ -75,7 +82,6 @@ struct SpeedView: View {
                 }
                 VStack(spacing: Self.digitToUnitSpacing(digitSize: digitSize, unitInk: unitInk, unitFont: Self.roundelUnitFont)) {
                     digitText(size: digitSize)
-                        .minimumScaleFactor(0.6)
                     Text(units.label)
                         .font(.speedo(size: Self.roundelUnitSize))
                         .opacity(0.7)
@@ -104,10 +110,23 @@ struct SpeedView: View {
     // Text frames extend beyond the visible glyphs: below the baseline by the font's descent and
     // above by its ascent. The sums below work in visible ink so every gap the eye sees is `Layout.gap`.
 
+    /// Glyph-path measurement is not cheap and the view re-evaluates every GPS fix, so results
+    /// are kept per text and font size. The inputs are a handful of fixed strings.
+    nonisolated(unsafe) private static var inkCache: [String: CGRect] = [:]
+
     private static func inkBounds(of text: String, font: UIFont?) -> CGRect {
         guard let font else { return CGRect(x: 0, y: 0, width: 0, height: unitSize * 0.7) }
+        let key = "\(font.fontName)/\(font.pointSize)/\(text)"
+        if let cached = inkCache[key] { return cached }
         let line = CTLineCreateWithAttributedString(NSAttributedString(string: text, attributes: [.font: font]))
-        return CTLineGetBoundsWithOptions(line, [.useGlyphPathBounds])
+        let bounds = CTLineGetBoundsWithOptions(line, [.useGlyphPathBounds])
+        inkCache[key] = bounds
+        return bounds
+    }
+
+    /// Frame space under the unit label's ink: the font's descent less any descender in the text.
+    private static func spaceBelowInk(_ ink: CGRect, font: UIFont) -> CGFloat {
+        -font.descender + ink.minY
     }
 
     /// How far a round digit dips below the baseline, in ems. Measured on "0" so the label
@@ -128,13 +147,13 @@ struct SpeedView: View {
         return max(40, min(byHeight, byWidth))
     }
 
-    private static func roundelDigitSize(diameter: CGFloat, unitInkHeight: CGFloat) -> CGFloat {
+    private static func roundelDigitSize(diameter: CGFloat, digits: Int, unitInkHeight: CGFloat) -> CGFloat {
         guard let digitMetrics else { return 60 }
         let metrics = RoundelLayout.Metrics(capRatio: digitMetrics.capHeight / 100,
                                             digitWidthRatio: digitWidthRatio,
                                             unitInkHeight: unitInkHeight,
                                             gap: Layout.gap)
-        return max(20, RoundelLayout.digitSize(diameter: diameter, digits: 2, metrics: metrics))
+        return max(20, RoundelLayout.digitSize(diameter: diameter, digits: digits, metrics: metrics))
     }
 
     private static func digitToUnitSpacing(digitSize: CGFloat, unitInk: CGRect, unitFont: UIFont?) -> CGFloat {
@@ -146,8 +165,7 @@ struct SpeedView: View {
 
     private static func unitBottomPadding(unitInk: CGRect) -> CGFloat {
         guard let unitFont else { return Layout.gap }
-        let unitSpaceBelowInk = -unitFont.descender + unitInk.minY
-        return Layout.gap - unitSpaceBelowInk
+        return Layout.gap - spaceBelowInk(unitInk, font: unitFont)
     }
 
     /// The text block's frames are taller than its ink, mostly above the digits. Shift so the
@@ -155,7 +173,7 @@ struct SpeedView: View {
     private static func roundelBlockOffset(digitSize: CGFloat, unitInk: CGRect) -> CGFloat {
         guard let digitMetrics, let unitFont = roundelUnitFont else { return 0 }
         let spaceAboveDigitInk = (digitMetrics.ascender - digitMetrics.capHeight) / 100 * digitSize
-        let spaceBelowUnitInk = -unitFont.descender + unitInk.minY
+        let spaceBelowUnitInk = spaceBelowInk(unitInk, font: unitFont)
         // The ink's centre is below the frames' centre by half the difference; shift up to compensate.
         return -(spaceAboveDigitInk - spaceBelowUnitInk) / 2
     }

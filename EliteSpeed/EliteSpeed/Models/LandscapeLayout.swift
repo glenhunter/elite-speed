@@ -13,6 +13,11 @@ nonisolated enum LandscapeLayout {
     /// Narrowest useful map: enough to see the next junction.
     static let minimumMapWidth: Double = 150
 
+    /// Width a centred roundel needs when it fills the panel height: the circle plus its side insets.
+    static func roundelPanelWidth(panelHeight: Double, gap: Double, sideInset: Double) -> Double {
+        (panelHeight - 2 * gap) + 2 * sideInset
+    }
+
     /// Stacked buttons above the clock: the wider of the two, plus padding either side.
     static func columnWidth(buttonSize: Double, clockWidth: Double, padding: Double) -> Double {
         max(buttonSize, clockWidth) + 2 * padding

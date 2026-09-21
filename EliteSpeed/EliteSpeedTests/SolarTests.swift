@@ -62,6 +62,12 @@ struct SolarTests {
         #expect(!Solar.isNight(at: Self.utc(2025, 6, 21, 0, 30), latitude: Self.svalbard.lat, longitude: Self.svalbard.lon))
     }
 
+    @Test func firstDayOfPolarNightIsNight() {
+        // 14 December at 72.8°N: the setting solve is just out of range while the rising one is
+        // still inside, so the day must be classified from the failing solve, not the other.
+        #expect(Solar.isNight(at: Self.utc(2025, 12, 14, 12, 0), latitude: 72.8, longitude: 0))
+    }
+
     @Test func polarWinterIsAlwaysNight() {
         #expect(Solar.isNight(at: Self.utc(2025, 12, 21, 11, 0), latitude: Self.svalbard.lat, longitude: Self.svalbard.lon))
     }

@@ -18,8 +18,9 @@ struct NowPlayingView: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .accessibilityElement(children: .combine)
+            .accessibilityElement(children: .ignore)
             .accessibilityLabel("Now playing")
+            .accessibilityValue([title, music.artist].compactMap { $0 }.joined(separator: ", "))
         }
     }
 }

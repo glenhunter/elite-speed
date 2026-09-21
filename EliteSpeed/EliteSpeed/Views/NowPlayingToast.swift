@@ -41,8 +41,9 @@ struct NowPlayingToast: View {
         .padding(12)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
         .padding(.top, 8)
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel("Now playing")
+        .accessibilityValue([track.title, track.artist].compactMap { $0 }.joined(separator: ", "))
         // No accessibility action: it is a transient announcement, not a control.
     }
 }

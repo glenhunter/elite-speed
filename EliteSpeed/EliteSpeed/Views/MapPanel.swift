@@ -16,25 +16,22 @@ struct MapPanel: View {
         .mapStyle(.standard(elevation: .flat, emphasis: .muted, pointsOfInterest: .excludingAll, showsTraffic: false))
         .mapControlVisibility(.hidden)
         .environment(\.colorScheme, palette.mapIsLight ? .light : .dark)
-        .onChange(of: speed.fixCount, initial: true) { aim(animated: true) }
-        .onChange(of: followsHeading) { aim(animated: true) }
-        .accessibilityLabel("Map")
+        .onChange(of: speed.fixCount, initial: true) { aim() }
+        .onChange(of: followsHeading) { aim() }
         .accessibilityHidden(true) // Decorative for VoiceOver; the compass and speed carry the information.
     }
 
     /// Points the camera at the latest fix. One-second linear motion matches the one-fix-a-second
-    /// GPS cadence, so the map glides rather than stepping.
-    private func aim(animated: Bool) {
+    /// GPS cadence, so the map glides rather than stepping. A parked car's jitter is ignored so the
+    /// map rests instead of re-animating every second.
+    private func aim() {
         guard let here = speed.coordinate else { return }
         let camera = MapCamera(centerCoordinate: here,
                                distance: MapCameraRule.distance,
                                heading: MapCameraRule.heading(course: speed.heading, rotates: followsHeading),
                                pitch: 0)
-        if animated {
-            withAnimation(.linear(duration: 1)) { position = .camera(camera) }
-        } else {
-            position = .camera(camera)
-        }
+        if let current = position.camera, MapCameraRule.isSettled(current, camera) { return }
+        withAnimation(.linear(duration: 1)) { position = .camera(camera) }
     }
 }
 

@@ -1,6 +1,6 @@
 import Foundation
 
-/// Pure heading rules: when to trust the GPS course, how far to turn the needle, what to call the direction.
+/// Pure heading rules: when to trust the GPS course and what to call the direction.
 nonisolated enum Heading {
     /// Below this GPS course is noise; the magnetometer takes over.
     static let courseSpeedFloorKmh = 7.0
@@ -8,8 +8,9 @@ nonisolated enum Heading {
     static let courseAccuracyLimit = 20.0
 
     /// GPS course in degrees, or nil when Core Location marks it invalid or too inaccurate.
+    /// A negative accuracy is Core Location's "unknown" sentinel, not a perfect fix.
     static func validCourse(_ course: Double, accuracy: Double) -> Double? {
-        course >= 0 && accuracy < courseAccuracyLimit ? course : nil
+        course >= 0 && accuracy >= 0 && accuracy < courseAccuracyLimit ? course : nil
     }
 
     /// True when the car is moving fast enough for the GPS course to be trusted.
@@ -22,15 +23,6 @@ nonisolated enum Heading {
     /// A parked car still points where it last drove.
     static func heldCourse(previous: Double?, kmh: Double?, course: Double?) -> Double? {
         isCourseLive(kmh: kmh, course: course) ? course : previous
-    }
-
-    /// Signed degrees to add to `from` to reach `to` by the shorter way, in (-180, 180].
-    /// `from` may be an accumulated angle outside 0..<360.
-    static func shortestDelta(from: Double, to: Double) -> Double {
-        var delta = (to - from).truncatingRemainder(dividingBy: 360)
-        if delta > 180 { delta -= 360 }
-        if delta <= -180 { delta += 360 }
-        return delta
     }
 
     private static let points = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]

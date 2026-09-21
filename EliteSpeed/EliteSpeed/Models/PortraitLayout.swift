@@ -10,15 +10,18 @@ nonisolated enum PortraitLayout {
         let media: Double
     }
 
-    /// Clock and compass row (7%) plus controls (13%), always reserved.
-    private static let lowerShare = 0.20
+    /// Bare digits take the design's quarter; a roundel asks for more and the map yields it.
+    static let defaultSpeedShare = 0.25
+    private static let rowShare = 0.07
+    private static let mediaShare = 0.13
+    /// Clock and compass row plus controls, always reserved whether shown or not.
+    private static var lowerShare: Double { rowShare + mediaShare }
 
-    /// `speed` defaults to the design's quarter; a roundel asks for more and the map yields it.
-    static func shares(showMap: Bool, showRow: Bool, showMedia: Bool, speed: Double = 0.25) -> Shares {
+    static func shares(showMap: Bool, showRow: Bool, showMedia: Bool, speed: Double = defaultSpeedShare) -> Shares {
         Shares(speed: speed,
-               map: showMap ? 1 - speed - lowerShare : 0,
-               row: showRow ? 0.07 : 0,
-               media: showMedia ? 0.13 : 0)
+               map: showMap ? max(0, 1 - speed - lowerShare) : 0,
+               row: showRow ? rowShare : 0,
+               media: showMedia ? mediaShare : 0)
     }
 
     /// Height the speed panel needs for a roundel inset `sideMargin` from each screen edge, with

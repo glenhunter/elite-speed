@@ -25,7 +25,6 @@ struct RootView: View {
     var body: some View {
         TimelineView(.everyMinute) { context in
             let palette = Palette.resolve(theme: theme, digitColour: digitColour, night: isNight(at: context.date))
-            let _ = EliteSpeedApp.keepScreenAwake()
             Group {
                 if verticalSizeClass == .compact {
                     landscape(palette)
@@ -48,10 +47,15 @@ struct RootView: View {
                 EliteSpeedApp.keepScreenAwake()
             }
         }
+        // Presenting a sheet does not change the scene phase, so re-assert on the way back.
+        .onChange(of: showSettings) { _, presented in
+            if !presented { EliteSpeedApp.keepScreenAwake() }
+        }
     }
 
+    /// Reads the coarse position so the whole dashboard is not redrawn on every fix.
     private func isNight(at date: Date) -> Bool {
-        guard nightMode, let here = speed.coordinate else { return false }
+        guard nightMode, let here = speed.coarseCoordinate else { return false }
         return Solar.isNight(at: date, latitude: here.latitude, longitude: here.longitude)
     }
 
@@ -63,10 +67,10 @@ struct RootView: View {
     /// speed · map above; music · keyline · [clock | compass] below, at fixed shares of the height.
     private func portrait(_ palette: Palette) -> some View {
         GeometryReader { geometry in
-            let height = geometry.size.height
+            let height = max(geometry.size.height, 1)
             let rowWidth = geometry.size.width - 2 * sideInset
             let speedShare = palette.roundel == nil
-                ? 0.25
+                ? PortraitLayout.defaultSpeedShare
                 : PortraitLayout.roundelPanelHeight(screenWidth: geometry.size.width, sideMargin: Layout.roundelSideMargin, gap: Layout.gap) / height
             let shares = PortraitLayout.shares(showMap: showMap, showRow: showRow, showMedia: showMediaControls, speed: speedShare)
             VStack(spacing: 0) {
@@ -129,8 +133,8 @@ struct RootView: View {
 
     /// Media button height in the landscape column; their width matches the keylines.
     private let landscapeButtonHeight: CGFloat = 64
-    /// Widest time the clock can show at its landscape size, for the column width.
-    private let clockWidth = Font.speedoWidth(of: "88:88 AM", size: ClockView.fontSize)
+    /// Widest time the clock can show at its landscape size, for the column width. Measured once.
+    private static let clockWidth = Font.speedoWidth(of: "88:88 AM", size: ClockView.fontSize)
 
     /// [stacked music and now-playing above, clock and compass below] · speed · map. The column is as wide as
     /// its contents need; the speed takes what a full-height roundel wants, or 35:40 with the
@@ -140,13 +144,13 @@ struct RootView: View {
     private func landscape(_ palette: Palette) -> some View {
         GeometryReader { geometry in
             let columnContent = LandscapeLayout.columnWidth(buttonSize: landscapeButtonHeight,
-                                                             clockWidth: clockWidth,
+                                                             clockWidth: showClock ? Self.clockWidth : 0,
                                                              padding: Layout.gap)
             let keylineWidth = columnContent - 2 * Layout.gap
             let panelHeight = geometry.size.height - 2 * edge
             let roundelNatural: Double? = palette.roundel == nil
                 ? nil
-                : (panelHeight - 2 * Layout.gap) + 4 * Layout.gap
+                : LandscapeLayout.roundelPanelWidth(panelHeight: panelHeight, gap: Layout.gap, sideInset: SpeedView.defaultRoundelSideInset)
             let widths = LandscapeLayout.widths(total: geometry.size.width - edge - 2 * Layout.gap,
                                                 column: columnContent + edge,
                                                 speedNatural: roundelNatural,
@@ -155,7 +159,7 @@ struct RootView: View {
                 if showColumn {
                     VStack(spacing: 0) {
                         if showMediaControls {
-                            MusicControlsView(buttonWidth: keylineWidth, buttonHeight: landscapeButtonHeight, axis: .vertical)
+                            MusicControlsView(buttonSize: CGSize(width: keylineWidth, height: landscapeButtonHeight), axis: .vertical)
                                 .padding(.top, Layout.gap)
                             NowPlayingView()
                                 .padding(.top, Layout.gap)

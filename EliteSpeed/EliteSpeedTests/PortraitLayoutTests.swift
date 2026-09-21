@@ -30,6 +30,11 @@ struct PortraitLayoutTests {
         #expect(s.speed == 0.48 && abs(s.map - 0.32) < 0.0001 && s.row == 0.07 && s.media == 0.13)
     }
 
+    @Test func mapShareNeverGoesNegative() {
+        let s = PortraitLayout.shares(showMap: true, showRow: true, showMedia: true, speed: 0.95)
+        #expect(s.map == 0)
+    }
+
     @Test func roundelPanelHeightIsTheCircleWithinTheSideMarginsPlusAGapBelow() {
         // 402 wide screen, 36 each side: circle 330, plus one gap below. The top sits on the
         // safe area, which already clears the Dynamic Island by about a gap.

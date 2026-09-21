@@ -15,8 +15,9 @@ struct TrackInfo: Equatable {
 final class MusicModel {
     private(set) var title: String?
     private(set) var artist: String?
-    private(set) var artwork: UIImage?
     private(set) var isPlaying = false
+    /// Only the toast shows artwork, so it is decoded once per track change, not on every refresh.
+    @ObservationIgnored private var artwork: UIImage?
     /// Non-nil while the now-playing toast should be on screen.
     private(set) var toast: TrackInfo?
 
@@ -81,7 +82,9 @@ final class MusicModel {
         let item = player.nowPlayingItem
         title = item?.title
         artist = item?.artist
-        artwork = item?.artwork?.image(at: CGSize(width: 120, height: 120))
+        if item?.persistentID != nowPlayingID {
+            artwork = item?.artwork?.image(at: CGSize(width: 120, height: 120))
+        }
         nowPlayingID = item?.persistentID
     }
 

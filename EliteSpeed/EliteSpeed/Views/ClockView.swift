@@ -14,6 +14,7 @@ struct ClockView: View {
                 .minimumScaleFactor(0.6)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .accessibilityLabel("Time")
         .accessibilityAddTraits(.updatesFrequently)
     }
 }

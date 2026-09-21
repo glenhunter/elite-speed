@@ -1,9 +1,8 @@
 import SwiftUI
 
 struct MusicControlsView: View {
-    /// Fixed button width and height, or nil to fill the available space.
-    var buttonWidth: CGFloat? = nil
-    var buttonHeight: CGFloat? = nil
+    /// Fixed button size, or nil to fill the available space.
+    var buttonSize: CGSize? = nil
     /// Buttons side by side, or stacked for a narrow column.
     var axis: Axis = .horizontal
 
@@ -33,8 +32,8 @@ struct MusicControlsView: View {
             Image(systemName: symbol)
                 // Medium weight sits at a similar visual weight to Barlow.
                 .font(.system(size: 36, weight: .medium))
-                .frame(width: buttonWidth, height: buttonHeight)
-                .frame(maxWidth: buttonWidth == nil ? .infinity : nil, maxHeight: buttonHeight == nil ? .infinity : nil)
+                .frame(width: buttonSize?.width, height: buttonSize?.height)
+                .frame(maxWidth: buttonSize == nil ? .infinity : nil, maxHeight: buttonSize == nil ? .infinity : nil)
                 .frame(minWidth: 44, minHeight: 44)
                 .contentShape(Rectangle())
         }
